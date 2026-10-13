@@ -7,7 +7,7 @@ HOST = '0.0.0.0'
 PORT = 5555
 
 
-
+print("didididid nigniging")
 
 def recv_exact(sock, n):
 
