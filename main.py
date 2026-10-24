@@ -2,9 +2,16 @@ import sys
 import os
 import tkinter as tk
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.abspath(os.path.join(current_dir, '..'))
 
-from gui.gui import AppController
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+
+try:
+    from gui.gui import AppController
+except ModuleNotFoundError:
+    from gui import AppController
 
 
 class PreviewController(AppController):

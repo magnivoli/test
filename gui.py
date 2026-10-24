@@ -425,7 +425,7 @@ class LoginPage(BasePage):
         bubble_card = tk.Frame(side_frame, bg="#0284c7", bd=0)
         bubble_card.place(relx=0.5, rely=0.5, anchor="center", width=280, height=220)
 
-        bubble_text = "gonmigel\nwill never steal\nyour\ndata"
+        bubble_text = "gonmigel\nwill never steal\nyour\npassword"
         label_bubble = tk.Label(bubble_card, text=bubble_text, font=("Comic Sans MS", 18, "bold"), bg="#0284c7",
                                 fg="white", justify="center")
         label_bubble.pack(expand=True)
