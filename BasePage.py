@@ -1,6 +1,6 @@
 import tkinter as tk
-from tkinter import ttk
-from abc import ABC,abstractmethod
+from abc import ABC, abstractmethod
+
 
 class BasePage(tk.Frame, ABC):
     def __init__(self, parent, controller, width=900, height=650, title="gonmigel"):

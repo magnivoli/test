@@ -1,6 +1,5 @@
-from BasePage import BasePage
 import tkinter as tk
-from tkinter import ttk
+from BasePage import BasePage
 
 class WelcomePage(BasePage):
     def create_widgets(self):

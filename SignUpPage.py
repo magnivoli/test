@@ -1,6 +1,7 @@
-from BasePage import BasePage
 import tkinter as tk
-from tkinter import ttk
+from tkinter import messagebox
+import json
+from BasePage import BasePage
 
 class SignUpPage(BasePage):
     def create_widgets(self):
@@ -17,16 +18,16 @@ class SignUpPage(BasePage):
                                                                                                              column=0,
                                                                                                              sticky="w",
                                                                                                              pady=5)
-        entry_user = tk.Entry(fields_frame, font=("Helvetica", 11), bg="#0f172a", fg="white", insertbackground="white")
-        entry_user.grid(row=0, column=1, sticky="ew", padx=10, ipady=4)
+        self.entry_user = tk.Entry(fields_frame, font=("Helvetica", 11), bg="#0f172a", fg="white", insertbackground="white")
+        self.entry_user.grid(row=0, column=1, sticky="ew", padx=10, ipady=4)
 
         tk.Label(fields_frame, text="Password:", font=("Helvetica", 11), bg=self.card_bg, fg="#94a3b8").grid(row=1,
                                                                                                              column=0,
                                                                                                              sticky="w",
                                                                                                              pady=5)
-        entry_pass = tk.Entry(fields_frame, font=("Helvetica", 11), show="*", bg="#0f172a", fg="white",
+        self.entry_pass = tk.Entry(fields_frame, font=("Helvetica", 11), show="*", bg="#0f172a", fg="white",
                               insertbackground="white")
-        entry_pass.grid(row=1, column=1, sticky="ew", padx=10, ipady=4)
+        self.entry_pass.grid(row=1, column=1, sticky="ew", padx=10, ipady=4)
 
         fields_frame.grid_columnconfigure(1, weight=1)
 
@@ -38,9 +39,12 @@ class SignUpPage(BasePage):
 
         interests_list = ["relationship", "sports", "gaming", "movies", "study guide", "music", "politics", "idk"]
 
+        self.interest_vars = {}
         for idx, interest in enumerate(interests_list):
             row = idx // 4
             col = idx % 4
+            var = tk.BooleanVar()
+            self.interest_vars[interest] = var
             cb = tk.Checkbutton(
                 interests_frame,
                 text=interest,
@@ -49,11 +53,12 @@ class SignUpPage(BasePage):
                 fg=self.fg_color,
                 selectcolor="#0f172a",
                 activebackground=self.card_bg,
-                activeforeground=self.accent_cyan
+                activeforeground=self.accent_cyan,
+                variable=var
             )
             cb.grid(row=row, column=col, sticky="w", padx=10, pady=8)
 
-        btn_signup = tk.Button(
+        self.btn_signup = tk.Button(
             card,
             text="Sign Up & Start Chatting",
             font=("Helvetica", 12, "bold"),
@@ -61,6 +66,35 @@ class SignUpPage(BasePage):
             fg="white",
             bd=0,
             cursor="hand2",
-            command=lambda: self.controller.client.send_message(entry_user.get()+  " + "+entry_pass.get())
+            command=self.handle_signup_click
         )
-        btn_signup.pack(fill="x", padx=40, pady=(25, 0), ipady=8)
+        self.btn_signup.pack(fill="x", padx=40, pady=(25, 0), ipady=8)
+
+    def handle_signup_click(self):
+        username = self.entry_user.get()
+        password = self.entry_pass.get()
+        selected_interests = [interest for interest, var in self.interest_vars.items() if var.get()]
+
+        signup_data = {
+            "action": "register",
+            "username": username,
+            "password": password,
+            "interests": selected_interests
+        }
+
+        if hasattr(self.controller, 'client') and self.controller.client:
+            self.controller.client.set_callback(self.on_server_response)
+            self.controller.client.send_message(json.dumps(signup_data))
+
+    def on_server_response(self, response):
+        self.after(0, lambda: self.process_response(response))
+
+    def process_response(self, response):
+        status = response.get("status")
+        message = response.get("message")
+
+        if status == "success":
+            messagebox.showinfo("Success", message)
+            self.controller.show_frame("MainChatPage")
+        else:
+            messagebox.showerror("Error", message)

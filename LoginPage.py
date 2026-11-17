@@ -1,6 +1,7 @@
-from BasePage import BasePage
 import tkinter as tk
-from tkinter import ttk
+from tkinter import messagebox
+import json
+from BasePage import BasePage
 
 class LoginPage(BasePage):
     def create_widgets(self):
@@ -10,22 +11,17 @@ class LoginPage(BasePage):
         form_frame = tk.Frame(main_container, bg=self.card_bg, bd=1, relief="solid")
         form_frame.pack(side="left", fill="both", expand=True, padx=15)
 
-        tk.Label(form_frame, text="Welcome Back", font=("Helvetica", 22, "bold"), bg=self.card_bg,
-                 fg=self.fg_color).pack(anchor="w", padx=30, pady=(30, 20))
+        tk.Label(form_frame, text="Welcome Back", font=("Helvetica", 22, "bold"), bg=self.card_bg, fg=self.fg_color).pack(anchor="w", padx=30, pady=(30, 20))
 
-        tk.Label(form_frame, text="Username", font=("Helvetica", 11), bg=self.card_bg, fg="#94a3b8").pack(anchor="w",
-                                                                                                          padx=30)
-        entry_user = tk.Entry(form_frame, font=("Helvetica", 12), bg="#0f172a", fg="white", insertbackground="white",
-                              bd=1)
-        entry_user.pack(fill="x", padx=30, pady=(5, 15), ipady=6)
+        tk.Label(form_frame, text="Username", font=("Helvetica", 11), bg=self.card_bg, fg="#94a3b8").pack(anchor="w", padx=30)
+        self.entry_user = tk.Entry(form_frame, font=("Helvetica", 12), bg="#0f172a", fg="white", insertbackground="white", bd=1)
+        self.entry_user.pack(fill="x", padx=30, pady=(5, 15), ipady=6)
 
-        tk.Label(form_frame, text="Password", font=("Helvetica", 11), bg=self.card_bg, fg="#94a3b8").pack(anchor="w",
-                                                                                                          padx=30)
-        entry_pass = tk.Entry(form_frame, font=("Helvetica", 12), show="*", bg="#0f172a", fg="white",
-                              insertbackground="white", bd=1)
-        entry_pass.pack(fill="x", padx=30, pady=(5, 25), ipady=6)
+        tk.Label(form_frame, text="Password", font=("Helvetica", 11), bg=self.card_bg, fg="#94a3b8").pack(anchor="w", padx=30)
+        self.entry_pass = tk.Entry(form_frame, font=("Helvetica", 12), show="*", bg="#0f172a", fg="white", insertbackground="white", bd=1)
+        self.entry_pass.pack(fill="x", padx=30, pady=(5, 25), ipady=6)
 
-        btn_submit = tk.Button(
+        self.btn_submit = tk.Button(
             form_frame,
             text="Log In",
             font=("Helvetica", 12, "bold"),
@@ -33,9 +29,9 @@ class LoginPage(BasePage):
             fg="white",
             bd=0,
             cursor="hand2",
-            command=lambda: self.controller.show_frame("MainChatPage")
+            command=self.handle_login_click
         )
-        btn_submit.pack(fill="x", padx=30, ipady=8)
+        self.btn_submit.pack(fill="x", padx=30, ipady=8)
 
         side_frame = tk.Frame(main_container, bg=self.bg_color)
         side_frame.pack(side="right", fill="both", expand=True, padx=15)
@@ -43,7 +39,33 @@ class LoginPage(BasePage):
         bubble_card = tk.Frame(side_frame, bg="#0284c7", bd=0)
         bubble_card.place(relx=0.5, rely=0.5, anchor="center", width=280, height=220)
 
-        bubble_text = "gonmigel\nwill never steal\nyour\npassword"
-        label_bubble = tk.Label(bubble_card, text=bubble_text, font=("Comic Sans MS", 18, "bold"), bg="#0284c7",
-                                fg="white", justify="center")
+        bubble_text = "gonmigel\nwill never steal\nyour\ndata"
+        label_bubble = tk.Label(bubble_card, text=bubble_text, font=("Comic Sans MS", 18, "bold"), bg="#0284c7", fg="white", justify="center")
         label_bubble.pack(expand=True)
+
+    def handle_login_click(self):
+        username = self.entry_user.get()
+        password = self.entry_pass.get()
+
+        login_data = {
+            "action": "login",
+            "username": username,
+            "password": password
+        }
+
+        if hasattr(self.controller, 'client') and self.controller.client:
+            self.controller.client.set_callback(self.on_server_response)
+            self.controller.client.send_message(json.dumps(login_data))
+
+    def on_server_response(self, response):
+        self.after(0, lambda: self.process_response(response))
+
+    def process_response(self, response):
+        status = response.get("status")
+        message = response.get("message")
+
+        if status == "success":
+            messagebox.showinfo("Success", message)
+            self.controller.show_frame("MainChatPage")
+        else:
+            messagebox.showerror("Error", message)
